@@ -1,12 +1,17 @@
-import {Router} from "express";
-import SheetRouter from "./router/sheet.router";
+import {Express, Router} from "express";
+import {RegisterSheets} from "./router/sheets";
+import {RequestProcessor} from "./request-processor";
 
-const router = Router();
 
-router.get('/hello', (req, res, next) => {
-    res.json('world');
-});
+export function RegisterRoutes(app: Express){
+    app.get('/api/hello', (req, res, next) => {
+        res.json('world');
+    });
+    app.post('/api', (req, res, next) => {
+            processor.ProcessRequest(req, res, next)
+        }
+    )
 
-router.use('/sheets', SheetRouter);
-
-export default router;
+    const processor = new RequestProcessor()
+    RegisterSheets(processor)
+}

@@ -16,19 +16,24 @@ export class RequestProcessor {
     }
 
     private ExecuteRequest(request: express.Request, response: express.Response) {
-        const interactor = this.GetExecutorInteractor(request.path);
         const context = this.ProduceContext(request);
-        response.json(interactor.execute(context))
+        try {
+            const execute = (context: any) => this.GetExecutorInteractor(context.request.path).execute(context);
+            response.json(execute(context))
+        }
+        catch (err) {
+            console.error('Can not execute interactor for code: ' + context.request.path)
+            console.error(err)
+            response.status(500)
+        }
     }
 
     private GetExecutorInteractor(path: string): Interactor<unknown> {
-        let interactor = this.map[path]()
-        if (!interactor) throw new Error('Can not find interactor for code: ' + path)
-        return interactor
+        return this.map[path]()
     }
 
-    private ProduceContext(request: express.Request): { request?: RequestModel } | undefined {
+    private ProduceContext(request: express.Request): { request?: RequestModel } {
         if (request.body) return {request: request.body}
-        else return undefined
+        else throw new Error('Requests must have path')
     }
 }

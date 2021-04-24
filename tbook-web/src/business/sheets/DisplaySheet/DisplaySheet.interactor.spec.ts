@@ -1,8 +1,5 @@
 import {DisplaySheetInteractor} from "./DisplaySheet.interactor";
-import {Sheet} from "../sheet";
 import {Provider} from "../../provider";
-
-const exampleSheet: Sheet = {components: [], name: ""}
 
 describe('DisplaySheet', () => {
     let interactor;

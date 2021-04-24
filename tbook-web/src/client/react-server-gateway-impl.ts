@@ -5,7 +5,7 @@ import {fromFetch} from "rxjs/fetch";
 import {map} from "rxjs/operators";
 
 export class ReactServerGatewayImpl implements ServerTransferGateway {
-    private apiAddress = 'http://localhost:3000/';
+    private apiAddress = 'http://localhost:3000';
     private baseRoute = `${this.apiAddress}/api`;
 
     SendRequest(requestModel: RequestModel): Observable<any> {

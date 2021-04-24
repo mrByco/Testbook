@@ -1,16 +1,13 @@
 import * as express from 'express';
-import apiRouter from './router';
-import {RequestProcessor} from "./request-processor";
+import {RegisterRoutes} from "./router";
+import * as bodyParser from 'body-parser';
 
 const app = express();
 app.use(express.static('public'));
+app.use(bodyParser.json())
+RegisterRoutes(app)
 
-const processor = new RequestProcessor()
 
-app.get('/api/*', (req, res) => {
-        res.json('asd')
-    }
-)
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server listening on port: ${port}`));

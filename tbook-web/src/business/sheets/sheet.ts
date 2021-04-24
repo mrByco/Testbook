@@ -1,16 +1,17 @@
-interface TextSheetComponent {
+export interface TextSheetComponent {
     type: 'text';
     id: string;
     text: string;
 }
 
-interface InlineOneWordFieldSheetComponent {
+export interface InlineOneWordFieldSheetComponent {
     type: 'inline-one-word';
     id: string;
+    content?: string;
     hint?: string;
     correctAnswers: string[];
 }
-type SheetComponent = TextSheetComponent | InlineOneWordFieldSheetComponent
+export type SheetComponent = TextSheetComponent | InlineOneWordFieldSheetComponent
 
 export interface Sheet {
     name: string;

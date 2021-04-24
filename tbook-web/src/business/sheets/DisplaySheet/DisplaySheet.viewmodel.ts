@@ -1,16 +1,19 @@
-interface Text {
+export interface SheetViewText {
     type: 'text',
     text: string
 }
 
-interface Field {
+export interface SheetViewField {
     id: string,
     type: 'field',
     content: string,
+    hint: string,
     state: 'not-processed' | 'pass' | 'fail'
 }
 
+export type SheetViewComponent = SheetViewText | SheetViewField;
+
 export interface DisplaySheetViewmodel {
     title: string;
-    components: (Field | Text)[]
+    components: SheetViewComponent[]
 }
