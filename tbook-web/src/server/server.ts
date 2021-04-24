@@ -1,10 +1,13 @@
 import * as express from 'express';
-import apiRouter from './routes';
+import {RegisterRoutes} from "./router";
+import * as bodyParser from 'body-parser';
 
 const app = express();
-
 app.use(express.static('public'));
-app.use(apiRouter);
+app.use(bodyParser.json())
+RegisterRoutes(app)
+
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Server listening on port: ${port}`));
