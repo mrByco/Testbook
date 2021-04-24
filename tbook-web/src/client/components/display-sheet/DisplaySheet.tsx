@@ -3,6 +3,8 @@ import './DisplaySheet.scss'
 import {DisplaySheetPresenter} from "../../../business/sheets/DisplaySheet/DisplaySheet.presenter";
 import {useEffect, useState} from "react";
 import {DisplaySheetViewmodel, SheetViewComponent} from "../../../business/sheets/DisplaySheet/DisplaySheet.viewmodel";
+import {Button, TextField} from "@material-ui/core";
+import { Navbar } from '../navbar/Navbar';
 
 const displaySheetPresenter = new DisplaySheetPresenter()
 
@@ -14,28 +16,37 @@ export const DisplaySheet = () => {
         displaySheetPresenter.Load()
     }, [])
 
-    if (viewmodel == undefined){
-        return (<h2>Loading...</h2>)
-    }
+    let mainContent = <h2>Loading...</h2>
 
     function viewComponentToHtml(viewComponent: SheetViewComponent) {
-        switch (viewComponent.type){
+        switch (viewComponent.type) {
             case "text":
-                return <span> {viewComponent.text} </span>
+                return <span style={{verticalAlign: "center"}}> {viewComponent.text} </span>
             case "field":
-                return <input type="text" placeholder={viewComponent.hint}/>
+                return <TextField id={viewComponent.id} label={viewComponent.hint} variant="outlined" size="small"
+                                  color="primary" className='text-field'/>
         }
     }
-    const sheetContent = <p>{viewmodel.components.map(c => viewComponentToHtml(c))}</p>;
 
-    return (
-        <div className="container">
-            <div className="m-2">
-                <h2>{viewmodel.title}</h2>
-                {sheetContent}
+    if (viewmodel) {
+        const sheetContent = <div className="text">{viewmodel.components.map(c => viewComponentToHtml(c))}</div>;
+        mainContent = <div className="container">
+                <div className="m-2">
+                    {sheetContent}
+                    <hr/>
+                    <div className="row">
+                        <Button variant="contained" color="primary">
+                            Check
+                        </Button>
+                    </div>
+                </div>
             </div>
-        </div>
-    )
+    }
+
+    return (<div>
+        <Navbar title={viewmodel?.title}/>
+        <div className="mt-4">{mainContent}</div>
+    </div>)
 }
 
 
