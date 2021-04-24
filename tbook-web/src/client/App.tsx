@@ -9,7 +9,7 @@ const App = (props: AppProps) => {
 	useEffect(() => {
 		async function getGreeting() {
 			try {
-				const res = await fetch('/api/hello');
+				const res = await fetch('/api/hello/ds');
 				const greeting = await res.json();
 				setGreeting(greeting);
 			} catch (error) {
@@ -20,9 +20,9 @@ const App = (props: AppProps) => {
 	}, []);
 
 	return (
-		<main className="container-fluid my-5">
-			<h3>{greeting}</h3>
+		<main>
 			<Navbar/>
+			<h3>{greeting}</h3>
 		</main>
 	);
 };

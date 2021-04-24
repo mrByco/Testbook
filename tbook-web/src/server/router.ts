@@ -1,9 +1,12 @@
-import * as express from 'express';
+import {Router} from "express";
+import SheetRouter from "./router/sheet.router";
 
-const router = express.Router();
+const router = Router();
 
-router.get('/api/hello', (req, res, next) => {
+router.get('/hello', (req, res, next) => {
     res.json('world');
 });
+
+router.use('/sheets', SheetRouter);
 
 export default router;
