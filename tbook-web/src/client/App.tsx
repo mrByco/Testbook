@@ -22,12 +22,14 @@ const theme = createMuiTheme({
 	},
 });
 
-/* HOOK REACT EXAMPLE */
 const App = (props: AppProps) => {
+	const [navbarOptions, setNavbarOptions] = useState({});
+
 	return (
 		<main>
 			<MuiThemeProvider theme={theme}>
-				<DisplaySheet/>
+				<Navbar {...navbarOptions}/>
+				<DisplaySheet onSetNavbarOptions={setNavbarOptions}/>
 			</MuiThemeProvider>
 		</main>
 	);

@@ -4,7 +4,7 @@ import {FC} from "react";
 import CloseIcon from '@material-ui/icons/Close';
 import {IconButton} from "@material-ui/core";
 
-export const Navbar: FC<NavbarProps> = (props) => {
+export const Navbar: FC<NavbarOptions> = (props) => {
     return (
         <div className="header-root w-100">
             <div className="container h-100 d-flex align-items-center justify-content-between">
@@ -15,8 +15,9 @@ export const Navbar: FC<NavbarProps> = (props) => {
     )
 }
 
-export interface NavbarProps {
+export interface NavbarOptions {
     title?: string;
+    addressOnClose?: string;
 }
 
 

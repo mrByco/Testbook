@@ -1,22 +1,26 @@
 import * as React from 'react'
+import {FC, useEffect, useState} from 'react'
 import './DisplaySheet.scss'
 import {DisplaySheetPresenter} from "../../../business/sheets/DisplaySheet/DisplaySheet.presenter";
-import {useEffect, useState} from "react";
 import {DisplaySheetViewmodel, SheetViewComponent} from "../../../business/sheets/DisplaySheet/DisplaySheet.viewmodel";
 import {Button, TextField} from "@material-ui/core";
-import { Navbar } from '../navbar/Navbar';
+import {NavbarOptions} from '../navbar/Navbar';
 
 const displaySheetPresenter = new DisplaySheetPresenter()
 
-export const DisplaySheet = () => {
+export const DisplaySheet: FC<DisplaySheetProps> = (props) => {
     const [viewmodel, setViewmodel] = useState<DisplaySheetViewmodel>()
     displaySheetPresenter.setCallback(setViewmodel)
+    useEffect(() => {
+        props.onSetNavbarOptions({title: viewmodel?.title, addressOnClose: "/"})
+    }, [viewmodel])
 
     useEffect(() => {
         displaySheetPresenter.Load()
     }, [])
 
-    let mainContent = <h2>Loading...</h2>
+
+    if (!viewmodel) return (<div className="container mt-4"><h2>Loading...</h2></div>)
 
     function viewComponentToHtml(viewComponent: SheetViewComponent) {
         switch (viewComponent.type) {
@@ -28,25 +32,28 @@ export const DisplaySheet = () => {
         }
     }
 
-    if (viewmodel) {
-        const sheetContent = <div className="text">{viewmodel.components.map(c => viewComponentToHtml(c))}</div>;
-        mainContent = <div className="container">
-                <div className="m-2">
-                    {sheetContent}
-                    <hr/>
-                    <div className="row">
-                        <Button variant="contained" color="primary">
-                            Check
-                        </Button>
-                    </div>
-                </div>
+    const sheetContent = <div className="text">{viewmodel.components.map(c => viewComponentToHtml(c))}</div>;
+    return (<div className="container mt-4">
+        <div className="m-2">
+            {sheetContent}
+            <hr/>
+            <div className="d-flex flex-row justify-content-around">
+                <Button variant="contained" color="primary">
+                    Go back
+                </Button>
+                <Button variant="contained" color="primary">
+                    Check answers
+                </Button>
+                <Button variant="contained" color="primary">
+                    Next
+                </Button>
             </div>
-    }
-
-    return (<div>
-        <Navbar title={viewmodel?.title}/>
-        <div className="mt-4">{mainContent}</div>
+        </div>
     </div>)
+}
+
+export interface DisplaySheetProps {
+    onSetNavbarOptions: (options: NavbarOptions) => void
 }
 
 
