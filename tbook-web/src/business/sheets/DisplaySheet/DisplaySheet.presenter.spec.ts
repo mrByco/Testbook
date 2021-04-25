@@ -1,24 +1,14 @@
 import {DisplaySheetPresenter} from "./DisplaySheet.presenter";
 import {ServerProvider} from "../../server-provider";
-import {Observable} from "rxjs";
-import {RequestModel} from "../../../abstraction/request-model";
 import {DisplaySheetViewmodel} from "./DisplaySheet.viewmodel";
 import {getExampleSheetResponse} from "../../../test/ExampleSheets";
+import {MockServerGateway} from "../../../test/mock-server-gateway";
 
 describe('DisplaySheet Presenter', () => {
     let presenter: DisplaySheetPresenter;
     let result: DisplaySheetViewmodel
     beforeAll(async () => {
-        ServerProvider.ServerGateway = {
-            SendRequest(request: RequestModel): Observable<any> {
-                return new Observable<any>((s) => {
-                    setTimeout(() => {
-                        s.next(getExampleSheetResponse())
-                        s.complete()
-                    }, 0)
-                })
-            }
-        }
+        ServerProvider.ServerGateway = new MockServerGateway(() => getExampleSheetResponse())
         presenter = new DisplaySheetPresenter();
         presenter.setCallback((vm) => {
             result = vm;

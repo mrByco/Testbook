@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import {useState} from 'react';
 import {Navbar} from "./components/navbar/Navbar";
-import {DisplaySheet} from "./components/display-sheet/DisplaySheet";
 
 import {createMuiTheme, MuiThemeProvider} from '@material-ui/core/styles';
+import {EditSheet} from "./components/edit-sheet/EditSheet";
 
 const theme = createMuiTheme({
 	palette: {
@@ -18,18 +18,19 @@ const theme = createMuiTheme({
 			main: '#f50057',
 			dark: '#bb002f',
 			contrastText: '#000',
-		},
+		}
 	},
 });
 
 const App = (props: AppProps) => {
 	const [navbarOptions, setNavbarOptions] = useState({});
+	//<DisplaySheet onSetNavbarOptions={setNavbarOptions}/>
 
 	return (
 		<main>
 			<MuiThemeProvider theme={theme}>
 				<Navbar {...navbarOptions}/>
-				<DisplaySheet onSetNavbarOptions={setNavbarOptions}/>
+				<EditSheet onSetNavbarOptions={setNavbarOptions}/>
 			</MuiThemeProvider>
 		</main>
 	);

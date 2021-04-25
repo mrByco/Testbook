@@ -1,5 +1,5 @@
 import {Presenter} from "../../../abstraction/presenter";
-import {SheetViewComponent, DisplaySheetViewmodel} from "./DisplaySheet.viewmodel";
+import {DisplaySheetViewComponent, DisplaySheetViewmodel} from "./DisplaySheet.viewmodel";
 import {ServerProvider} from "../../server-provider";
 import {DisplaySheetRequest} from "./DisplaySheet.request";
 import {DisplaySheetResponse} from "./DisplaySheet.response";
@@ -26,10 +26,10 @@ export class DisplaySheetPresenter extends Presenter<DisplaySheetViewmodel> {
         }
     }
 
-    private DataComponentToViewmodelComponent(c: SheetComponent): SheetViewComponent {
+    private DataComponentToViewmodelComponent(c: SheetComponent): DisplaySheetViewComponent {
         switch (c.type) {
             case "text":
-                return {type: 'text', text: c.text, id: c.id} as SheetViewComponent
+                return {type: 'text', text: c.text, id: c.id} as DisplaySheetViewComponent
             case "inline-one-word":
                 let content = this.GetSheetViewmodelFieldContent(c);
                 return {type: "field", content: content, id: c.id, state: 'not-processed', hint: c.hint ? c.hint : ''}

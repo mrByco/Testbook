@@ -1,0 +1,23 @@
+.super-clean-input:active, .super-clean-input:focus, .super-clean-input {
+  outline: none;
+}
+.super-clean-input {
+  background: #88888835;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding: 5px;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom-width: 1.5px;
+  transition: border 200ms;
+}
+.super-clean-input.white {
+  font-size: 24px;
+  font-weight: 500;
+  color: white;
+  border-bottom-color: #FFFFFF45;
+}
+.super-clean-input.white:focus {
+  border-bottom-color: white;
+}

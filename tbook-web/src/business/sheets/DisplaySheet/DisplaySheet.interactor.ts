@@ -1,17 +1,17 @@
 import {Interactor} from "../../../abstraction/interactor";
-import {Sheet} from "../sheet";
 import {SheetEntity} from "../sheet.entity";
 import {Provider} from "../../provider";
+import {DisplaySheetResponse} from "./DisplaySheet.response";
 
-export class DisplaySheetInteractor implements Interactor<Sheet> {
+export class DisplaySheetInteractor implements Interactor<DisplaySheetResponse> {
     constructor(private SheetEntity: SheetEntity) {
     }
 
-    execute(): Sheet {
+    execute() {
         return this.SheetEntity.GetSheet();
     }
 
-    static get(): Interactor<Sheet> {
+    static get(): Interactor<DisplaySheetResponse> {
         return new DisplaySheetInteractor(Provider.Entities.SheetEntity)
     }
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {FC, useEffect, useState} from 'react'
 import './DisplaySheet.scss'
 import {DisplaySheetPresenter} from "../../../business/sheets/DisplaySheet/DisplaySheet.presenter";
-import {DisplaySheetViewmodel, SheetViewComponent} from "../../../business/sheets/DisplaySheet/DisplaySheet.viewmodel";
+import {DisplaySheetViewmodel, DisplaySheetViewComponent} from "../../../business/sheets/DisplaySheet/DisplaySheet.viewmodel";
 import {Button, TextField} from "@material-ui/core";
 import {NavbarOptions} from '../navbar/Navbar';
 
@@ -22,7 +22,7 @@ export const DisplaySheet: FC<DisplaySheetProps> = (props) => {
 
     if (!viewmodel) return (<div className="container mt-4"><h2>Loading...</h2></div>)
 
-    function viewComponentToHtml(viewComponent: SheetViewComponent) {
+    function viewComponentToHtml(viewComponent: DisplaySheetViewComponent) {
         switch (viewComponent.type) {
             case "text":
                 return <span style={{verticalAlign: "center"}}> {viewComponent.text} </span>
