@@ -48,6 +48,7 @@ describe('EditSheet presenter', () => {
                 ], name: "Title"
             })
             let expected: EditSheetViewmodel = {
+                selection: undefined,
                 title: 'Title',
                 components: [
                     {type: "text", id: '1', text: 'Text of the sheet'}
@@ -98,8 +99,46 @@ describe('EditSheet presenter', () => {
             const checkComponent: EditSheetViewComponent = result.components[1];
             expect(checkComponent['answers'].length).toBe(2)
         });
+    });
 
+    describe('Text editor', () => {
+        let presenter: EditSheetPresenter;
+        let lastViewmodel: EditSheetViewmodel;
 
-    })
+        beforeEach(async () => {
+            ServerProvider.ServerGateway = new MockServerGateway(() => someEditSheetResponse)
+            presenter = new EditSheetPresenter();
+            presenter.Load();
+            lastViewmodel = await new Promise<EditSheetViewmodel>(r => {
+                presenter.setCallback((vm) => {
+                    r(vm);
+                });
+            });
+            return;
+        });
 
-})
+        it('should set selection', function () {
+            presenter.SetSelection({startChar: 1, endChar: 2, startComponentId: '2', endComponentId: '2'})
+            expect(lastViewmodel.selection).toEqual({
+                startChar: 1,
+                endChar: 2,
+                startComponentId: '2',
+                endComponentId: '2'
+            })
+        });
+    });
+});
+
+const someEditSheetResponse: EditSheetResponse = {
+    components: [
+        {type: "text", id: '1', text: 'someText'},
+        {
+            type: 'inline-one-word',
+            id: '2',
+            hint: 'someTextHint',
+            content: undefined,
+            correctAnswers: ['answer1', 'answer2']
+        }
+    ],
+    name: "someName"
+}

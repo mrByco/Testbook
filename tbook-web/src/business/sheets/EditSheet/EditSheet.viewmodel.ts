@@ -1,3 +1,5 @@
+import {TBSelection} from "../../helper/selection";
+
 interface SheetViewText {
     type: 'text',
     id: string,
@@ -15,9 +17,12 @@ interface SheetViewObject {
     answers: string[],
 }
 
+
+
 export type EditSheetViewComponent = SheetViewText | SheetViewObject;
 
 export interface EditSheetViewmodel {
+    selection: TBSelection;
     title: string;
     components: EditSheetViewComponent[]
 }

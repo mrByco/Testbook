@@ -4,12 +4,19 @@ import {ServerProvider} from "../../server-provider";
 import {EditSheetResponse} from "./EditSheet.response";
 import {EditSheetRequest} from "./EditSheet.request";
 import {SheetComponent} from "../sheet";
+import {TBSelection} from "../../helper/selection";
 
 export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
+    private selection: TBSelection = undefined;
 
     public async Load() {
         this.data = await ServerProvider.ServerGateway.SendRequest({path: 'edit-sheet'} as EditSheetRequest).toPromise();
+        this.present();
+    }
+
+    public SetSelection(selection: TBSelection) {
+        this.selection = selection;
         this.present();
     }
 
@@ -20,6 +27,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private generateViewModel(data: EditSheetResponse): EditSheetViewmodel {
         return {
+            selection: this.selection,
             title: data.name,
             components: data.components.map(c => this.convertComponentToViewComponent(c))
         }
