@@ -109,23 +109,45 @@ describe('EditSheet presenter', () => {
             ServerProvider.ServerGateway = new MockServerGateway(() => someEditSheetResponse)
             presenter = new EditSheetPresenter();
             presenter.Load();
-            lastViewmodel = await new Promise<EditSheetViewmodel>(r => {
+            await new Promise<void>(r => {
                 presenter.setCallback((vm) => {
-                    r(vm);
+                    lastViewmodel = vm;
+                    r();
                 });
             });
             return;
         });
 
         it('should set selection', function () {
-            presenter.SetSelection({startChar: 1, endChar: 2, startComponentId: '2', endComponentId: '2'})
+            presenter.SetSelection({startChar: 1, endChar: 2, startComponentId: '1', endComponentId: '1'})
             expect(lastViewmodel.selection).toEqual({
                 startChar: 1,
                 endChar: 2,
-                startComponentId: '2',
-                endComponentId: '2'
+                startComponentId: '1',
+                endComponentId: '1'
             })
         });
+
+        it('should limit selection in valid area', function () {
+            presenter.SetSelection({startChar: 900, endChar: 1000, startComponentId: '1', endComponentId: '1'});
+            expect(lastViewmodel.selection.startChar).toBe(someEditSheetResponse.components[0]['text'].length - 1)
+            expect(lastViewmodel.selection.endChar).toBe(someEditSheetResponse.components[0]['text'].length - 1)
+        });
+
+        it('should type single letters', function () {
+            presenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
+            presenter.Type("g");
+            expect(lastViewmodel.components[0]['text']).toBe('sogmeText')
+        });
+
+        it('should type to multy character selections', function () {
+            presenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '1'});
+            presenter.Type("g");
+            expect(lastViewmodel.components[0]['text']).toBe('sogText')
+        });
+
+        it('should type to cross component selection');
+        it('should type to edge components');
     });
 });
 
