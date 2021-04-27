@@ -1,6 +1,6 @@
 ## Introducing Testbook
 
-Testbook is a simple to use application for creating language tests. On testbook we can find various types of tests, and we can craete easily new ones. 
+Testbook is a simple to use application for creating language tests. On testbook we can find various types of tests, and we can craete easily new ones. In general the porpuse of testbook is to help us raising knowledge
 
 _I mainly started the project for practicing clean code techiques._
 
