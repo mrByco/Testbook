@@ -3,13 +3,19 @@ import {EditSheetViewComponent, EditSheetViewmodel} from "./EditSheet.viewmodel"
 import {ServerProvider} from "../../server-provider";
 import {EditSheetResponse} from "./EditSheet.response";
 import {EditSheetRequest} from "./EditSheet.request";
-import {SheetComponent} from "../sheet";
+import {Sheet, SheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
-import {indigo} from "@material-ui/core/colors";
+import {Simulate} from "react-dom/test-utils";
+import {merge} from "rxjs";
 
 export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
     private selection: TBSelection = undefined;
+
+    private get selectionIsCarret(): boolean {
+        return this.selection.startChar == this.selection.endChar &&
+            this.selection.startComponentId == this.selection.endComponentId;
+    }
 
     public async Load() {
         this.data = await ServerProvider.ServerGateway.SendRequest({path: 'edit-sheet'} as EditSheetRequest).toPromise();
@@ -33,16 +39,23 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     public Type(insertText: string) {
         if (!this.selection) return;
-        this.addTextToCurrentSelction(insertText)
+        this.typeToSelection(insertText)
+        this.cleanUpComponents()
         this.present();
     }
 
-    private addTextToCurrentSelction(text: string){
+    private typeToSelection(text: string) {
+        if (!this.selectionIsCarret) this.deleteSelectionContent()
+        this.insertToCarret(text);
+    }
+
+    private insertToCarret(text: string) {
         const component = this.data.components.find((c) => c.id == this.selection.startComponentId)
-        if (component.type == "text"){
+        if (component.type == "text") {
             console.log(this.selection.startChar)
-            component.text = this.splice(component.text, this.selection.startChar, this.selection.endChar, text);
+            component.text = EditSheetPresenter.splice(component.text, this.selection.startChar, this.selection.startChar, text);
         }
+
     }
 
     private padSelectionCharPosition(charIndex: number, componentId: string) {
@@ -93,8 +106,91 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
         }
     }
 
-    private splice(original: string, from: number, to: number, text: string) {
+    private deleteSelectionContent() {
+        this.data.components = this.data.components
+            .map(c => this.deleteSelectedPartOfComponent(c.id))
+            .filter(c => c != undefined)
+    }
+
+    private deleteSelectedPartOfComponent(componentId: string): SheetComponent | undefined {
+        const component = this.getComponentById(componentId);
+        if (!this.isComponentInSelection(component)) return component
+        if (this.isWholeComponentSelected(componentId)) return undefined;
+        return this.getRemainingAfterInComponentSelectionRemoved(componentId, component)
+    }
+
+    private getRemainingAfterInComponentSelectionRemoved(componentId: string, component: SheetComponent) {
+        const deleteStart = this.selection.startComponentId == componentId ? this.selection.startChar : 'start'
+        const deleteEnd = this.selection.endComponentId == componentId ? this.selection.endChar : 'end'
+        return EditSheetPresenter.deletePartOfComponent(component, deleteStart, deleteEnd);
+    }
+
+    private static deletePartOfComponent(component: SheetComponent, deleteFrom: number | 'start', deleteTo: number | 'end'): SheetComponent {
+        if (component.type == 'text') {
+            let from = deleteFrom == "start" ? 0 : deleteFrom;
+            let to = deleteTo == "end" ? component.text.length : deleteTo;
+            return {type: 'text', id: component.id, text: this.splice(component.text, from, to)}
+        } else {
+            return undefined;
+        }
+    }
+
+    private isWholeComponentSelected(componentId: string): boolean {
+        const [startIndex, endIndex] = this.getSelectedComponentIndexes()
+        const componentIndex = this.data.components.indexOf(this.getComponentById(componentId));
+        return startIndex < componentIndex && componentIndex < endIndex;
+    }
+
+    private getSelectedComponentIndexes() {
+        const startIndex = this.data.components.indexOf(this.getComponentById(this.selection.startComponentId));
+        const endIndex = this.data.components.indexOf(this.getComponentById(this.selection.endComponentId));
+        return [startIndex, endIndex]
+    }
+
+    private static splice(original: string, from: number, to: number, text: string = '') {
         return original.slice(0, from) + text + original.slice(to);
     };
 
+    private getComponentById(id: string) {
+        return this.data.components.find(c => c.id == id);
+    }
+
+    private isComponentInSelection(component) {
+        const [start, end] = this.getSelectedComponentIndexes();
+        const componentIndex = this.data.components.indexOf(component);
+        return start <= componentIndex && componentIndex <= end;
+    }
+
+    private cleanUpComponents() {
+        this.data.components = EditSheetPresenter.mergeComponentList(this.data.components)
+    }
+
+    private static mergeComponentList(components: SheetComponent[]) {
+        let i = 0;
+        const mergedComponents = [];
+        let currentWorkingComponent = undefined;
+        for (let component of components) {
+            if (!currentWorkingComponent){
+                currentWorkingComponent = component
+                continue;
+            }
+            let tryMerge = EditSheetPresenter.tryMergeComponents(currentWorkingComponent, component);
+            if (tryMerge != undefined){
+                currentWorkingComponent = tryMerge;
+                continue;
+            }
+            mergedComponents.push(currentWorkingComponent);
+            currentWorkingComponent = component;
+        }
+        return [...mergedComponents, currentWorkingComponent]
+    }
+
+    private static tryMergeComponents(componentA: SheetComponent, componentB: SheetComponent): SheetComponent | undefined {
+        if (componentA.type == "text" && componentB.type == "text"){
+            return {type: 'text', text: componentA.text + componentB.text, id: componentA.id};
+        }
+        //Returns undefined if can not merge components
+        return undefined;
+
+    }
 }

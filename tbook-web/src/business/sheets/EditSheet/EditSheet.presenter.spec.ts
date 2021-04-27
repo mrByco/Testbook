@@ -27,7 +27,6 @@ describe('EditSheet presenter', () => {
             expect(result.components.length).toBe(getExampleSheetResponse().components.length)
         });
     })
-
     describe("Convert", () => {
         async function getPresentResult(response: EditSheetResponse) {
             let presenter: EditSheetPresenter;
@@ -100,17 +99,16 @@ describe('EditSheet presenter', () => {
             expect(checkComponent['answers'].length).toBe(2)
         });
     });
-
     describe('Text editor', () => {
-        let presenter: EditSheetPresenter;
+        let textPresenter: EditSheetPresenter;
         let lastViewmodel: EditSheetViewmodel;
 
         beforeEach(async () => {
-            ServerProvider.ServerGateway = new MockServerGateway(() => someEditSheetResponse)
-            presenter = new EditSheetPresenter();
-            presenter.Load();
+            ServerProvider.ServerGateway = new MockServerGateway(() => getSomeEditSheetResponse())
+            textPresenter = new EditSheetPresenter();
+            textPresenter.Load();
             await new Promise<void>(r => {
-                presenter.setCallback((vm) => {
+                textPresenter.setCallback((vm) => {
                     lastViewmodel = vm;
                     r();
                 });
@@ -118,8 +116,13 @@ describe('EditSheet presenter', () => {
             return;
         });
 
+        afterEach(() => {
+            lastViewmodel = undefined;
+            textPresenter = undefined;
+        })
+
         it('should set selection', function () {
-            presenter.SetSelection({startChar: 1, endChar: 2, startComponentId: '1', endComponentId: '1'})
+            textPresenter.SetSelection({startChar: 1, endChar: 2, startComponentId: '1', endComponentId: '1'})
             expect(lastViewmodel.selection).toEqual({
                 startChar: 1,
                 endChar: 2,
@@ -128,39 +131,50 @@ describe('EditSheet presenter', () => {
             })
         });
 
-        it('should limit selection in valid area', function () {
-            presenter.SetSelection({startChar: 900, endChar: 1000, startComponentId: '1', endComponentId: '1'});
-            expect(lastViewmodel.selection.startChar).toBe(someEditSheetResponse.components[0]['text'].length - 1)
-            expect(lastViewmodel.selection.endChar).toBe(someEditSheetResponse.components[0]['text'].length - 1)
+        test('should limit selection in valid area', function () {
+            textPresenter.SetSelection({startChar: 900, endChar: 1000, startComponentId: '1', endComponentId: '1'});
+            expect(lastViewmodel.selection.startChar).toBe(getSomeEditSheetResponse().components[0]['text'].length - 1)
+            expect(lastViewmodel.selection.endChar).toBe(getSomeEditSheetResponse().components[0]['text'].length - 1)
         });
 
-        it('should type single letters', function () {
-            presenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
-            presenter.Type("g");
+        test('should type single letters', function () {
+            textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Type("g");
             expect(lastViewmodel.components[0]['text']).toBe('sogmeText')
         });
 
-        it('should type to multy character selections', function () {
-            presenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '1'});
-            presenter.Type("g");
+        test('should type to multy character selections', function () {
+            textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Type("g");
             expect(lastViewmodel.components[0]['text']).toBe('sogText')
         });
 
-        it('should type to cross component selection');
-        it('should type to edge components');
+        test('should type to cross component selection', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '3'});
+            textPresenter.Type(' hello');
+            expect(lastViewmodel.components[0]['text']).toBe('so hellole text')
+        });
+        test.todo('should type to edge components');
     });
 });
 
-const someEditSheetResponse: EditSheetResponse = {
-    components: [
-        {type: "text", id: '1', text: 'someText'},
-        {
-            type: 'inline-one-word',
-            id: '2',
-            hint: 'someTextHint',
-            content: undefined,
-            correctAnswers: ['answer1', 'answer2']
-        }
-    ],
-    name: "someName"
+const getSomeEditSheetResponse: () => EditSheetResponse = () => {
+    return JSON.parse(JSON.stringify({
+        components: [
+            {type: "text", id: '1', text: 'someText'},
+            {
+                type: 'inline-one-word',
+                id: '2',
+                hint: 'someTextHint',
+                content: undefined,
+                correctAnswers: ['answer1', 'answer2']
+            },
+            {
+                type: 'text',
+                id: '3',
+                text: 'sample text'
+            }
+        ],
+        name: "someName"
+    })) as EditSheetResponse;
 }
