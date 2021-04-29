@@ -4,6 +4,7 @@ import {getExampleSheetResponse} from "../../../test/ExampleSheets";
 import {EditSheetViewComponent, EditSheetViewmodel} from "./EditSheet.viewmodel";
 import {EditSheetPresenter} from "./EditSheet.presenter";
 import {EditSheetResponse} from "./EditSheet.response";
+import {TBSelection} from "../../helper/selection";
 
 describe('EditSheet presenter', () => {
 
@@ -174,6 +175,12 @@ describe('EditSheet presenter', () => {
             textPresenter.Type(' hello');
             expect(lastViewmodel.components[0]['text']).toBe('so hellole text')
         });
+
+        test('selection should be reset after typed to selection', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '3'});
+            textPresenter.Type('hello');
+            expect(lastViewmodel.selection).toEqual({startChar: 7, endChar: 7, startComponentId: '1', endComponentId: '1'} as TBSelection)
+        })
     });
 });
 

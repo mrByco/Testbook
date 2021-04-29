@@ -3,7 +3,7 @@ import {EditSheetViewComponent, EditSheetViewmodel} from "./EditSheet.viewmodel"
 import {ServerProvider} from "../../server-provider";
 import {EditSheetResponse} from "./EditSheet.response";
 import {EditSheetRequest} from "./EditSheet.request";
-import {SheetComponent} from "../sheet";
+import {SheetComponent, TextSheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
 import {v4 as uuidv4} from "uuid";
 
@@ -51,10 +51,13 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private insertToCaret(text: string) {
         const component = this.data.components.find((c) => c.id == this.selection.startComponentId)
-        if (component.type == "text") {
-            component.text = EditSheetPresenter.splice(component.text, this.selection.startChar, this.selection.startChar, text);
-        }
+        if (component.type == "text") this.typeToComponentAndShiftSelection(component, text);
+    }
 
+    private typeToComponentAndShiftSelection(component: TextSheetComponent, text: string) {
+        component.text = EditSheetPresenter.splice(component.text, this.selection.startChar, this.selection.startChar, text);
+        this.selection.startChar += text.length;
+        this.selection.endChar += text.length;
     }
 
     private padSelectionCharPosition(charIndex: number, componentId: string) {
@@ -108,7 +111,13 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private deleteSelectionContent() {
         this.data.components = this.data.components
             .map(c => this.deleteSelectedPartOfComponent(c.id))
-            .filter(c => c != undefined)
+            .filter(c => c != undefined);
+        this.resetSelectionLength();
+    }
+
+    private resetSelectionLength() {
+        this.selection.endComponentId = this.selection.startComponentId;
+        this.selection.endChar = this.selection.startChar;
     }
 
     private deleteSelectedPartOfComponent(componentId: string): SheetComponent | undefined {
