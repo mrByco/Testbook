@@ -24,7 +24,7 @@ describe('EditSheet presenter', () => {
         });
     })
     describe("Convert", () => {
-        async function getPresentResult(response: EditSheetResponse) {
+        async function getPresentedView(response: EditSheetResponse) {
             let presenter: EditSheetPresenter;
             ServerProvider.ServerGateway = new MockServerGateway(() => response)
             presenter = new EditSheetPresenter();
@@ -37,7 +37,7 @@ describe('EditSheet presenter', () => {
         }
 
         it('should pass text', async function () {
-            let result = await getPresentResult({
+            let result = await getPresentedView({
                 components: [
                     {type: "text", id: '1', text: 'Text of the sheet'},
                 ], name: "Title"
@@ -52,19 +52,32 @@ describe('EditSheet presenter', () => {
             expect(result).toEqual(expected)
         });
 
-        it('the first and last component should be text', async function () {
-            let result = await getPresentResult({
-                name: "",
-                components: [
-                    {type: "inline-one-word", id: "id1", correctAnswers: [], hint: "", content: ""}
-                ]
-            })
-            expect(result.components[0].type).toBe("text");
-            expect(result.components[result.components.length - 1].type).toBe("text")
-        });
+        describe('Data clean up', () => {
+            it('the first and last component should be text', async function () {
+                let result = await getPresentedView({
+                    name: "",
+                    components: [
+                        {type: "inline-one-word", id: "id1", correctAnswers: [], hint: "", content: ""}
+                    ]
+                })
+                expect(result.components[0].type).toBe("text");
+                expect(result.components[result.components.length - 1].type).toBe("text")
+            });
+
+            it('There should be text component between the two object', async () => {
+                let result = await getPresentedView({
+                    name: "",
+                    components: [
+                        {type: "inline-one-word", id: "id1", correctAnswers: [], hint: "", content: ""},
+                        {type: "inline-one-word", id: "id2", correctAnswers: [], hint: "", content: ""}
+                    ]
+                });
+                expect(result.components[2].type).toBe("text");
+            });
+        })
 
         it('should online-one-word should be red', async function () {
-            const result = await getPresentResult({
+            const result = await getPresentedView({
                 components: [
                     {type: "inline-one-word", id: '1', hint: 'hint', correctAnswers: []}
                 ], name: "Title"
@@ -74,7 +87,7 @@ describe('EditSheet presenter', () => {
         });
 
         it('should show error message when there is no correct answer', async function () {
-            const result = await getPresentResult({
+            const result = await getPresentedView({
                 components: [
                     {type: "inline-one-word", id: '1', hint: 'hint', correctAnswers: []}
                 ], name: "Title"
@@ -84,7 +97,7 @@ describe('EditSheet presenter', () => {
         });
 
         it('should show error message when there is no correct answer', async function () {
-            const result = await getPresentResult({
+            const result = await getPresentedView({
                 components: [
                     {type: "text", text: 'text', id: '1'},
                     {type: "inline-one-word", id: '2', hint: 'hint', correctAnswers: ['answer1', 'answer2']}
@@ -96,7 +109,7 @@ describe('EditSheet presenter', () => {
 
 
         it('should pass all the correct answers', async function () {
-            const result = await getPresentResult({
+            const result = await getPresentedView({
                 components: [
                     {type: "text", text: 'text', id: '1'},
                     {type: "inline-one-word", id: '2', hint: 'hint', correctAnswers: ['answer1', 'answer2']}
