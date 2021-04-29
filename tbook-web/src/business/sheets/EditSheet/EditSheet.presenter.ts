@@ -82,7 +82,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private haveComponentsWithIds(ids: string[]): boolean {
         for (let id of ids) {
             if (!this.data.components.some((c) => c.id == id)) {
-                console.error('Presenter does not have components with the selected id!', id);
+                console.error('Presenter does not have components with the selected id!', `id: "${id}"`);
                 return false;
             }
         }

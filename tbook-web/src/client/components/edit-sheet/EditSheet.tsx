@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as ReactDom from 'react-dom'
 import {FC, SyntheticEvent, useEffect, useState} from 'react'
 import './EditSheet.scss'
 import {Button, IconButton, TextField} from "@material-ui/core";
@@ -6,7 +7,6 @@ import {NavbarOptions} from '../navbar/Navbar';
 import CloseIcon from "@material-ui/icons/Close";
 import {EditSheetPresenter} from "../../../business/sheets/EditSheet/EditSheet.presenter";
 import {EditSheetViewComponent, EditSheetViewmodel} from "../../../business/sheets/EditSheet/EditSheet.viewmodel";
-
 
 
 const editSheetPresenter = new EditSheetPresenter();
@@ -25,6 +25,12 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
             <IconButton key="close-btn" style={{color: "white"}}><CloseIcon key={"close-icon"}
                                                                             fontSize="large"/></IconButton>]
         props.onSetNavbarOptions({addressOnClose: "/", contentOverride: header})
+
+        if (viewmodel?.selection) {
+            let startNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.startComponentId))
+            let endNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.endComponentId))
+            window.getSelection().setBaseAndExtent(startNode.firstChild, viewmodel.selection.startChar, endNode.firstChild, viewmodel.selection.endChar)
+        }
     }, [viewmodel])
 
     useEffect(() => {
@@ -39,7 +45,8 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
             case "text":
                 return <span id={viewComponent.id} key={viewComponent.id}>{viewComponent.text}</span>;
             case "object":
-                return <span key={viewComponent.id} contentEditable={false} className="content object"
+                return <span id={viewComponent.id} key={viewComponent.id} contentEditable={false}
+                             className="content object"
                              style={{
                                  cursor: 'pointer',
                                  whiteSpace: 'nowrap',
@@ -50,33 +57,36 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
 
     function onSelect(e: SyntheticEvent<HTMLDivElement>) {
         const selection = window.getSelection()
-        console.log(selection.anchorOffset, selection.focusOffset, selection.anchorNode.parentElement.id, selection.focusNode.parentElement.id)
+        console.log(selection.anchorNode.parentElement.id, "log")
+        editSheetPresenter.SetSelection({
+            startChar: selection.anchorOffset,
+            endChar: selection.focusOffset,
+            startComponentId: selection.anchorNode.parentElement.id,
+            endComponentId: selection.focusNode.parentElement.id
+        })
     }
 
-    function onType(e: React.KeyboardEvent<HTMLDivElement>){
+    function onType(e: React.KeyboardEvent<HTMLDivElement>) {
         if (e.key.length == 1) {
-            if (e.key == "x" && e.ctrlKey){
+            if (e.key == "x" && e.ctrlKey) {
                 console.log("Cut caught")
-            }else if (e.key == "c" && e.ctrlKey){
+            } else if (e.key == "c" && e.ctrlKey) {
                 console.log("Copy caught")
-            }else if (e.key == "v" && e.ctrlKey){
+            } else if (e.key == "v" && e.ctrlKey) {
                 console.log("Paste caught")
-            }else{
-                console.log('Key prevented')
+            } else {
+                editSheetPresenter.Type(e.key);
             }
             e.preventDefault()
-        }
-        else if (e.key == 'Enter'){
+        } else if (e.key == 'Enter') {
             console.log("Enter caught")
             e.preventDefault()
-        }
-        else if (e.key == 'Backspace'){
-            console.log("Backspace caught")
+        } else if (e.key == 'Backspace') {
             e.preventDefault()
-        }
-        else if (e.key == 'Delete'){
-            console.log("Delete caught")
+            editSheetPresenter.Delete('backward')
+        } else if (e.key == 'Delete') {
             e.preventDefault()
+            editSheetPresenter.Delete('forward')
         }
     }
 
