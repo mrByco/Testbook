@@ -3,7 +3,7 @@ import {EditSheetViewComponent, EditSheetViewmodel} from "./EditSheet.viewmodel"
 import {ServerProvider} from "../../server-provider";
 import {EditSheetResponse} from "./EditSheet.response";
 import {EditSheetRequest} from "./EditSheet.request";
-import {SheetComponent, TextSheetComponent} from "../sheet";
+import {Sheet, SheetComponent, TextSheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
 import {v4 as uuidv4} from "uuid";
 
@@ -40,6 +40,13 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     public Type(insertText: string) {
         if (!this.selection) return;
         this.typeToSelection(insertText);
+        this.cleanUpComponents();
+        this.present();
+    }
+
+    public Delete(direction: 'forward' | 'backward') {
+        if (this.selectionIsCaret) this.expandSelection(direction);
+        this.deleteSelectionContent();
         this.cleanUpComponents();
         this.present();
     }
@@ -216,5 +223,45 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
         }
         if (!lastWasText) addEmptyText();
         return surroundedComponents;
+    }
+
+    private expandSelection(direction: 'forward' | 'backward') {
+        let edgeCharacter = direction == 'forward' ? this.selection.endChar : this.selection.startChar;
+        let edgeComponentId = direction == 'forward' ? this.selection.endComponentId : this.selection.startComponentId;
+        if (this.lastOrFirstCharacterOfComponent(edgeCharacter, this.getComponentById(edgeComponentId))) {
+            this.expandSelectionAcrossAComponent(edgeComponentId, direction);
+        } else {
+            if (direction == "forward") this.selection.endChar++;
+            if (direction == "backward") this.selection.startChar--;
+        }
+    }
+
+    private expandSelectionAcrossAComponent(edgeComponentId: string, direction: "forward" | "backward") {
+        const edgeComponentIndex = this.data.components.findIndex(c => c.id == edgeComponentId) == 0;
+        const componentIndexBeyondEdge = edgeComponentIndex + direction == 'forward' ? 1 : -1;
+        if (!this.getIsIndexInComponentRange(componentIndexBeyondEdge)) return;
+        const componentBeyondEdge = this.data.components[componentIndexBeyondEdge];
+        const newSelectedCharacterIndex = direction == 'forward' ? 0 : this.getComponentSelectableLength(componentBeyondEdge)
+        if (direction == 'forward') {
+            this.selection.endChar = newSelectedCharacterIndex;
+            this.selection.endComponentId = componentBeyondEdge.id;
+        }
+        if (direction == 'backward') {
+            this.selection.startChar = newSelectedCharacterIndex;
+            this.selection.startComponentId = componentBeyondEdge.id;
+        }
+    }
+
+    private getIsIndexInComponentRange(componentIndexBeyondEdge: number) {
+        return componentIndexBeyondEdge >= 0 && componentIndexBeyondEdge < this.data.components.length;
+    }
+
+    private lastOrFirstCharacterOfComponent(character: number, component: SheetComponent) {
+        return character == 0 || this.getComponentSelectableLength(component) == character;
+    }
+
+    private getComponentSelectableLength(component: SheetComponent) {
+        if (component.type != "text") return 1;
+        else return component.text.length;
     }
 }

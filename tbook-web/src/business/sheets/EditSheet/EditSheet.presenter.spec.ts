@@ -180,7 +180,25 @@ describe('EditSheet presenter', () => {
             textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '3'});
             textPresenter.Type('hello');
             expect(lastViewmodel.selection).toEqual({startChar: 7, endChar: 7, startComponentId: '1', endComponentId: '1'} as TBSelection)
-        })
+        });
+
+        test('should delete working with multy selection', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '3'});
+            textPresenter.Delete('forward');
+            expect(lastViewmodel.components[0]['text']).toBe('sole text')
+        });
+
+        test('should delete single character forward', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Delete('forward');
+            expect(lastViewmodel.components[0]['text']).toBe('soeText')
+        });
+
+        test('should delete single character backward', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Delete('backward');
+            expect(lastViewmodel.components[0]['text']).toBe('smeText')
+        });
     });
 });
 
