@@ -22,10 +22,6 @@ describe('EditSheet presenter', () => {
         it('should return value', function () {
             expect(result).toBeTruthy()
         });
-
-        it('should be the same amount of components after presentation', function () {
-            expect(result.components.length).toBe(getExampleSheetResponse().components.length)
-        });
     })
     describe("Convert", () => {
         async function getPresentResult(response: EditSheetResponse) {
@@ -56,13 +52,24 @@ describe('EditSheet presenter', () => {
             expect(result).toEqual(expected)
         });
 
+        it('the first and last component should be text', async function () {
+            let result = await getPresentResult({
+                name: "",
+                components: [
+                    {type: "inline-one-word", id: "id1", correctAnswers: [], hint: "", content: ""}
+                ]
+            })
+            expect(result.components[0].type).toBe("text");
+            expect(result.components[result.components.length - 1].type).toBe("text")
+        });
+
         it('should online-one-word should be red', async function () {
             const result = await getPresentResult({
                 components: [
                     {type: "inline-one-word", id: '1', hint: 'hint', correctAnswers: []}
                 ], name: "Title"
             });
-            const checkComponent: EditSheetViewComponent = result.components[0];
+            const checkComponent: EditSheetViewComponent = result.components.find(x => x.id == '1');
             expect(checkComponent['renderColor']).toEqual('#992211')
         });
 
@@ -72,7 +79,7 @@ describe('EditSheet presenter', () => {
                     {type: "inline-one-word", id: '1', hint: 'hint', correctAnswers: []}
                 ], name: "Title"
             });
-            const checkComponent: EditSheetViewComponent = result.components[0];
+            const checkComponent: EditSheetViewComponent = result.components.find(x => x.id == '1');
             expect(checkComponent['displayText']).toEqual('[NO ANSWER SET] (hint)')
         });
 
@@ -83,7 +90,7 @@ describe('EditSheet presenter', () => {
                     {type: "inline-one-word", id: '2', hint: 'hint', correctAnswers: ['answer1', 'answer2']}
                 ], name: "Title"
             });
-            const checkComponent: EditSheetViewComponent = result.components[1];
+            const checkComponent: EditSheetViewComponent = result.components.find(x => x.id == '2');
             expect(checkComponent['displayText']).toEqual('answer1 (hint)')
         });
 
@@ -154,7 +161,6 @@ describe('EditSheet presenter', () => {
             textPresenter.Type(' hello');
             expect(lastViewmodel.components[0]['text']).toBe('so hellole text')
         });
-        test.todo('should type to edge components');
     });
 });
 
@@ -173,7 +179,14 @@ const getSomeEditSheetResponse: () => EditSheetResponse = () => {
                 type: 'text',
                 id: '3',
                 text: 'sample text'
-            }
+            },
+            {
+                type: 'inline-one-word',
+                id: '4',
+                hint: 'someTextHint2',
+                content: undefined,
+                correctAnswers: ['answer1', 'answer2']
+            },
         ],
         name: "someName"
     })) as EditSheetResponse;

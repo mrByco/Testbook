@@ -3,10 +3,9 @@ import {EditSheetViewComponent, EditSheetViewmodel} from "./EditSheet.viewmodel"
 import {ServerProvider} from "../../server-provider";
 import {EditSheetResponse} from "./EditSheet.response";
 import {EditSheetRequest} from "./EditSheet.request";
-import {Sheet, SheetComponent} from "../sheet";
+import {SheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
-import {Simulate} from "react-dom/test-utils";
-import {merge} from "rxjs";
+import {v4 as uuidv4} from "uuid";
 
 export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
@@ -19,6 +18,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     public async Load() {
         this.data = await ServerProvider.ServerGateway.SendRequest({path: 'edit-sheet'} as EditSheetRequest).toPromise();
+        this.cleanUpComponents()
         this.present();
     }
 
@@ -39,8 +39,8 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     public Type(insertText: string) {
         if (!this.selection) return;
-        this.typeToSelection(insertText)
-        this.cleanUpComponents()
+        this.typeToSelection(insertText);
+        this.cleanUpComponents();
         this.present();
     }
 
@@ -52,7 +52,6 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private insertToCarret(text: string) {
         const component = this.data.components.find((c) => c.id == this.selection.startComponentId)
         if (component.type == "text") {
-            console.log(this.selection.startChar)
             component.text = EditSheetPresenter.splice(component.text, this.selection.startChar, this.selection.startChar, text);
         }
 
@@ -162,7 +161,8 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     }
 
     private cleanUpComponents() {
-        this.data.components = EditSheetPresenter.mergeComponentList(this.data.components)
+        let mergedComponents = EditSheetPresenter.mergeComponentList(this.data.components);
+        this.data.components = EditSheetPresenter.surroundWithTexts(mergedComponents);
     }
 
     private static mergeComponentList(components: SheetComponent[]) {
@@ -170,12 +170,12 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
         const mergedComponents = [];
         let currentWorkingComponent = undefined;
         for (let component of components) {
-            if (!currentWorkingComponent){
+            if (!currentWorkingComponent) {
                 currentWorkingComponent = component
                 continue;
             }
             let tryMerge = EditSheetPresenter.tryMergeComponents(currentWorkingComponent, component);
-            if (tryMerge != undefined){
+            if (tryMerge != undefined) {
                 currentWorkingComponent = tryMerge;
                 continue;
             }
@@ -186,11 +186,26 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     }
 
     private static tryMergeComponents(componentA: SheetComponent, componentB: SheetComponent): SheetComponent | undefined {
-        if (componentA.type == "text" && componentB.type == "text"){
+        if (componentA.type == "text" && componentB.type == "text") {
             return {type: 'text', text: componentA.text + componentB.text, id: componentA.id};
         }
         //Returns undefined if can not merge components
         return undefined;
 
+    }
+
+    private static surroundWithTexts(mergedComponents: SheetComponent[]) {
+        const surroundedComponents = [];
+        const addEmptyText = () => {
+            surroundedComponents.push({type: 'text', text: '', id: uuidv4().toString()} as SheetComponent)
+        }
+        let lastWasText = false;
+        for (const component of mergedComponents) {
+            if (component.type != "text" && !lastWasText) addEmptyText();
+            surroundedComponents.push(component);
+            lastWasText = component.type == "text";
+        }
+        if (!lastWasText) addEmptyText();
+        return surroundedComponents;
     }
 }
