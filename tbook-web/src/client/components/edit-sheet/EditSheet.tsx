@@ -7,6 +7,8 @@ import {NavbarOptions} from '../navbar/Navbar';
 import CloseIcon from "@material-ui/icons/Close";
 import {EditSheetPresenter} from "../../../business/sheets/EditSheet/EditSheet.presenter";
 import {EditSheetViewComponent, EditSheetViewmodel} from "../../../business/sheets/EditSheet/EditSheet.viewmodel";
+import {Simulate} from "react-dom/test-utils";
+import focus = Simulate.focus;
 
 
 const editSheetPresenter = new EditSheetPresenter();
@@ -27,9 +29,12 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
         props.onSetNavbarOptions({addressOnClose: "/", contentOverride: header})
 
         if (viewmodel?.selection) {
-            let startNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.startComponentId))
-            let endNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.endComponentId))
-            window.getSelection().setBaseAndExtent(startNode.firstChild, viewmodel.selection.startChar, endNode.firstChild, viewmodel.selection.endChar)
+            const startNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.startComponentId));
+            const endNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.endComponentId));
+            const selectAnchor = startNode.firstChild && viewmodel.selection.startChar > 0 ? startNode.firstChild : startNode;
+            const selectCenter = endNode.firstChild && viewmodel.selection.endChar > 0 ? endNode.firstChild : endNode;
+            window.getSelection().setBaseAndExtent(selectAnchor, viewmodel.selection.startChar, selectCenter, viewmodel.selection.endChar)
+            console.log(window.getSelection())
         }
     }, [viewmodel])
 
@@ -43,7 +48,9 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
     function viewComponentToHtml(viewComponent: EditSheetViewComponent) {
         switch (viewComponent.type) {
             case "text":
-                return <span id={viewComponent.id} key={viewComponent.id}>{viewComponent.text}</span>;
+                console.log(viewComponent.text.length)
+                return <span id={viewComponent.id}
+                             key={viewComponent.id}>{viewComponent.text}</span>;
             case "object":
                 return <span id={viewComponent.id} key={viewComponent.id} contentEditable={false}
                              className="content object"
@@ -57,12 +64,26 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
 
     function onSelect(e: SyntheticEvent<HTMLDivElement>) {
         const selection = window.getSelection()
-        console.log(selection.anchorNode.parentElement.id, "log")
+        let focusNode: any;
+        let anchorNode: any;
+        if (selection.focusNode['attributes']){
+            console.log(selection.focusNode['attributes'])
+            focusNode = (selection.focusNode['attributes'] as NamedNodeMap).getNamedItem('id').value;
+        }else {
+            focusNode = selection.focusNode['id'] ? selection.focusNode['id'] : selection.focusNode.parentElement.id
+        }
+        if (selection.anchorNode['attributes']){
+            console.log(selection.anchorNode['attributes'])
+            anchorNode = (selection.anchorNode['attributes'] as NamedNodeMap).getNamedItem('id').value;
+        }else {
+            anchorNode = selection.anchorNode['id'] ? selection.anchorNode['id'] : selection.anchorNode.parentElement.id
+        }
+        console.log(anchorNode, focusNode)
         editSheetPresenter.SetSelection({
             startChar: selection.anchorOffset,
             endChar: selection.focusOffset,
-            startComponentId: selection.anchorNode.parentElement.id,
-            endComponentId: selection.focusNode.parentElement.id
+            startComponentId: anchorNode,
+            endComponentId: focusNode
         })
     }
 

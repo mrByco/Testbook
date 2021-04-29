@@ -154,8 +154,14 @@ describe('EditSheet presenter', () => {
 
         test('should limit selection in valid area', function () {
             textPresenter.SetSelection({startChar: 900, endChar: 1000, startComponentId: '1', endComponentId: '1'});
-            expect(lastViewmodel.selection.startChar).toBe(getSomeEditSheetResponse().components[0]['text'].length - 1)
-            expect(lastViewmodel.selection.endChar).toBe(getSomeEditSheetResponse().components[0]['text'].length - 1)
+            expect(lastViewmodel.selection.startChar).toBe(getSomeEditSheetResponse().components[0]['text'].length)
+            expect(lastViewmodel.selection.endChar).toBe(getSomeEditSheetResponse().components[0]['text'].length)
+        });
+
+        test('be able to select the last character', function () {
+            textPresenter.SetSelection({startChar: 8, endChar: 8, startComponentId: '1', endComponentId: '1'});
+            expect(lastViewmodel.selection.startChar).toBe(8)
+            expect(lastViewmodel.selection.endChar).toBe(8)
         });
 
         test('should type single letters', function () {
@@ -198,6 +204,18 @@ describe('EditSheet presenter', () => {
             textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
             textPresenter.Delete('backward');
             expect(lastViewmodel.components[0]['text']).toBe('smeText')
+        });
+
+        test('should delete single character backward from last place of text', () => {
+            textPresenter.SetSelection({startChar: 8, endChar: 8, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Delete('backward');
+            expect(lastViewmodel.components[0]['text']).toBe('someTex')
+        });
+
+        test('should delete forward an object component', () => {
+            textPresenter.SetSelection({startChar: 8, endChar: 8, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Delete('forward');
+            expect(lastViewmodel.components[0]['text']).toBe('someTextsample text')
         });
 
         test('should handle to type a reversed selection', () => {

@@ -6,6 +6,7 @@ import {EditSheetRequest} from "./EditSheet.request";
 import {SheetComponent, TextSheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
 import {v4 as uuidv4} from "uuid";
+import {merge} from "rxjs";
 
 export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
@@ -27,6 +28,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
             this.present();
             return;
         }
+        console.log(selection)
         this.selection = {
             startChar: this.padSelectionCharPosition(selection.startChar, selection.startComponentId),
             endChar: this.padSelectionCharPosition(selection.endChar, selection.endComponentId),
@@ -76,7 +78,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private padSelectionCharPosition(charIndex: number, componentId: string) {
         let component = this.data.components.find(c => c.id == componentId);
-        return component['text'] ? Math.min(Math.max(charIndex, 0), component['text'].length - 1) : 0
+        return component['text'] ? Math.min(Math.max(charIndex, 0), component['text'].length) : 0
     }
 
     private haveComponentsWithIds(ids: string[]): boolean {
@@ -177,15 +179,16 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
         return this.data.components.find(c => c.id == id);
     }
 
-    private isComponentInSelection(component) {
+    private isComponentInSelection(component: any) {
         const [start, end] = this.getSelectedComponentIndexes();
         const componentIndex = this.data.components.indexOf(component);
         return start <= componentIndex && componentIndex <= end;
     }
 
     private cleanUpComponents() {
-        let mergedComponents = EditSheetPresenter.mergeComponentList(this.data.components);
-        this.data.components = EditSheetPresenter.surroundWithTexts(mergedComponents);
+        let mergedComponents: SheetComponent[] = EditSheetPresenter.mergeComponentList(this.data.components);
+        let cleaned = mergedComponents.map(c => c.type == 'text' ? {type: c.type, text: c.text.trim(), id: c.id} : c)
+        this.data.components = EditSheetPresenter.surroundWithTexts(cleaned);
     }
 
     private static mergeComponentList(components: SheetComponent[]) {
@@ -234,7 +237,10 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private expandSelection(direction: 'forward' | 'backward') {
         let edgeCharacter = direction == 'forward' ? this.selection.endChar : this.selection.startChar;
         let edgeComponentId = direction == 'forward' ? this.selection.endComponentId : this.selection.startComponentId;
-        if (this.lastOrFirstCharacterOfComponent(edgeCharacter, this.getComponentById(edgeComponentId))) {
+        let edgeComponent = this.getComponentById(edgeComponentId);
+
+        if (direction == 'backward' && edgeCharacter == 0 ||
+            direction == "forward" && edgeCharacter == EditSheetPresenter.getComponentSelectableLength(edgeComponent)) {
             this.expandSelectionAcrossAComponent(edgeComponentId, direction);
         } else {
             if (direction == "forward") this.selection.endChar++;
@@ -243,8 +249,8 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     }
 
     private expandSelectionAcrossAComponent(edgeComponentId: string, direction: "forward" | "backward") {
-        const edgeComponentIndex = this.data.components.findIndex(c => c.id == edgeComponentId) == 0;
-        const componentIndexBeyondEdge = edgeComponentIndex + direction == 'forward' ? 1 : -1;
+        const edgeComponentIndex = this.data.components.findIndex(c => c.id == edgeComponentId);
+        const componentIndexBeyondEdge = edgeComponentIndex + (direction == 'forward' ? 2 : -2);
         if (!this.getIsIndexInComponentRange(componentIndexBeyondEdge)) return;
         const componentBeyondEdge = this.data.components[componentIndexBeyondEdge];
         const newSelectedCharacterIndex = direction == 'forward' ? 0 : EditSheetPresenter.getComponentSelectableLength(componentBeyondEdge)
@@ -263,7 +269,6 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     }
 
     private lastOrFirstCharacterOfComponent(character: number, component: SheetComponent) {
-        return character == 0 || EditSheetPresenter.getComponentSelectableLength(component) == character;
     }
 
     private static getComponentSelectableLength(component: SheetComponent) {
@@ -273,7 +278,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private IsReversedSelection(selection: TBSelection) {
         const [first, second] = this.getSelectedComponentIndexes(selection)
-        if (first == second){
+        if (first == second) {
             return selection.startChar > selection.endChar;
         }
         return first > second;
