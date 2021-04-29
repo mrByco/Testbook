@@ -6,7 +6,6 @@ import {EditSheetRequest} from "./EditSheet.request";
 import {SheetComponent, TextSheetComponent} from "../sheet";
 import {TBSelection} from "../../helper/selection";
 import {v4 as uuidv4} from "uuid";
-import {merge} from "rxjs";
 
 export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
@@ -19,16 +18,14 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     public async Load() {
         this.data = await ServerProvider.ServerGateway.SendRequest({path: 'edit-sheet'} as EditSheetRequest).toPromise();
-        this.cleanUpComponents()
-        this.present();
+        this.cleanAndPresent();
     }
 
     public SetSelection(selection: TBSelection) {
         if (!this.haveComponentsWithIds([selection.startComponentId, selection.endComponentId])) {
-            this.present();
+            this.cleanAndPresent();
             return;
         }
-        console.log(selection)
         this.selection = {
             startChar: this.padSelectionCharPosition(selection.startChar, selection.startComponentId),
             endChar: this.padSelectionCharPosition(selection.endChar, selection.endComponentId),
@@ -36,7 +33,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
             endComponentId: selection.endComponentId
         };
         this.normalizeSelectionDirection();
-        this.present();
+        this.cleanAndPresent();
     }
 
 
@@ -49,15 +46,13 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     public Type(insertText: string) {
         if (!this.selection) return;
         this.typeToSelection(insertText);
-        this.cleanUpComponents();
-        this.present();
+        this.cleanAndPresent();
     }
 
     public Delete(direction: 'forward' | 'backward') {
         if (this.selectionIsCaret) this.expandSelection(direction);
         this.deleteSelectionContent();
-        this.cleanUpComponents();
-        this.present();
+        this.cleanAndPresent();
     }
 
     private typeToSelection(text: string) {
@@ -91,8 +86,9 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
         return true;
     }
 
-    private present() {
+    private cleanAndPresent() {
         if (!this.data) this.setView(undefined);
+        this.cleanUpComponents();
         this.setView(this.generateViewModel(this.data))
     }
 
@@ -187,8 +183,8 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private cleanUpComponents() {
         let mergedComponents: SheetComponent[] = EditSheetPresenter.mergeComponentList(this.data.components);
-        let cleaned = mergedComponents.map(c => c.type == 'text' ? {type: c.type, text: c.text.trim(), id: c.id} : c)
-        this.data.components = EditSheetPresenter.surroundWithTexts(cleaned);
+        let onlyWithContent = mergedComponents.filter(c => c.type != 'text' || !c.text.match(/^ *$/) || this.isComponentInSelection(c))
+        this.data.components = EditSheetPresenter.surroundWithTexts(onlyWithContent);
     }
 
     private static mergeComponentList(components: SheetComponent[]) {

@@ -31,7 +31,7 @@ export function getRealisticExampleSheet(): DisplaySheetResponse {
             {type: "inline-one-word", id: '6', hint: 'drive', correctAnswers: []},
             {type: 'text', id: '7', text: 'who used them. But they are now used to express individuality and can range from the small dolphin on the ankle to huge drawings of a fan\'s'},
             {type: "inline-one-word", id: '8', hint: 'favour', correctAnswers: []},
-            {type: 'text', id: '9', text: 'pop group, or even designs covering most of the body.\n On 7 October, the Dana Centre at London\'s Science Museum is putting tattoo culture under\n' +
+            {type: 'text', id: '9', text: 'pop group, or even designs covering most of the body.\n On 7 October, the Dana Centre at London\'s Science Museum is putting tattoo culture under' +
                     'the microscope. Katie Maggs, associate curator at the Science Museum, said there would be a'},
             {type: "inline-one-word", id: '10', hint: 'collect', correctAnswers: []},
             {type: 'text', id: '11', text: 'of late 19th century tattoos on display, together with the'},

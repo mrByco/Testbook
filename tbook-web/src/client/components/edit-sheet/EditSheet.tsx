@@ -8,7 +8,6 @@ import CloseIcon from "@material-ui/icons/Close";
 import {EditSheetPresenter} from "../../../business/sheets/EditSheet/EditSheet.presenter";
 import {EditSheetViewComponent, EditSheetViewmodel} from "../../../business/sheets/EditSheet/EditSheet.viewmodel";
 import {Simulate} from "react-dom/test-utils";
-import focus = Simulate.focus;
 
 
 const editSheetPresenter = new EditSheetPresenter();
@@ -28,13 +27,19 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
                                                                             fontSize="large"/></IconButton>]
         props.onSetNavbarOptions({addressOnClose: "/", contentOverride: header})
 
-        if (viewmodel?.selection) {
+    }, [viewmodel])
+
+    useEffect(() => {
+        if (!viewmodel?.selection) return;
+        try {
             const startNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.startComponentId));
             const endNode = ReactDom.findDOMNode(document.getElementById(viewmodel.selection.endComponentId));
             const selectAnchor = startNode.firstChild && viewmodel.selection.startChar > 0 ? startNode.firstChild : startNode;
             const selectCenter = endNode.firstChild && viewmodel.selection.endChar > 0 ? endNode.firstChild : endNode;
             window.getSelection().setBaseAndExtent(selectAnchor, viewmodel.selection.startChar, selectCenter, viewmodel.selection.endChar)
-            console.log(window.getSelection())
+        }
+        catch (e){
+            console.error(e)
         }
     }, [viewmodel])
 
@@ -48,8 +53,7 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
     function viewComponentToHtml(viewComponent: EditSheetViewComponent) {
         switch (viewComponent.type) {
             case "text":
-                console.log(viewComponent.text.length)
-                return <span id={viewComponent.id}
+                return <span style={{whiteSpace: "pre-wrap"}} id={viewComponent.id}
                              key={viewComponent.id}>{viewComponent.text}</span>;
             case "object":
                 return <span id={viewComponent.id} key={viewComponent.id} contentEditable={false}
@@ -64,26 +68,22 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
 
     function onSelect(e: SyntheticEvent<HTMLDivElement>) {
         const selection = window.getSelection()
-        let focusNode: any;
-        let anchorNode: any;
-        if (selection.focusNode['attributes']){
-            console.log(selection.focusNode['attributes'])
-            focusNode = (selection.focusNode['attributes'] as NamedNodeMap).getNamedItem('id').value;
-        }else {
-            focusNode = selection.focusNode['id'] ? selection.focusNode['id'] : selection.focusNode.parentElement.id
+
+        function getSelectionNode(node: Node) {
+            if (node['attributes']) {
+                return (node['attributes'] as NamedNodeMap).getNamedItem('id').value;
+            }
+            else return node['id'] ? node['id'] : node.parentElement.id
         }
-        if (selection.anchorNode['attributes']){
-            console.log(selection.anchorNode['attributes'])
-            anchorNode = (selection.anchorNode['attributes'] as NamedNodeMap).getNamedItem('id').value;
-        }else {
-            anchorNode = selection.anchorNode['id'] ? selection.anchorNode['id'] : selection.anchorNode.parentElement.id
-        }
-        console.log(anchorNode, focusNode)
+
+        let focusNodeId = getSelectionNode(selection.focusNode);
+        let anchorNodeId = getSelectionNode(selection.anchorNode);
+
         editSheetPresenter.SetSelection({
             startChar: selection.anchorOffset,
             endChar: selection.focusOffset,
-            startComponentId: anchorNode,
-            endComponentId: focusNode
+            startComponentId: anchorNodeId,
+            endComponentId: focusNodeId
         })
     }
 
@@ -100,7 +100,7 @@ export const EditSheet: FC<DisplaySheetProps> = (props) => {
             }
             e.preventDefault()
         } else if (e.key == 'Enter') {
-            console.log("Enter caught")
+            editSheetPresenter.Type('\n');
             e.preventDefault()
         } else if (e.key == 'Backspace') {
             e.preventDefault()

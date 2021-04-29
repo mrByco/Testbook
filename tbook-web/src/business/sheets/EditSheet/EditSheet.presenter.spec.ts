@@ -176,6 +176,12 @@ describe('EditSheet presenter', () => {
             expect(lastViewmodel.components[0]['text']).toBe('sogText')
         });
 
+        test('After type single char the selection should shift one', () => {
+            textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Type("g");
+            expect(lastViewmodel.selection).toEqual({startChar: 3, endChar: 3, startComponentId: '1', endComponentId: '1'})
+        })
+
         test('should type to cross component selection', () => {
             textPresenter.SetSelection({startChar: 2, endChar: 4, startComponentId: '1', endComponentId: '3'});
             textPresenter.Type(' hello');
@@ -222,6 +228,13 @@ describe('EditSheet presenter', () => {
             textPresenter.SetSelection({startChar: 4, endChar: 2, startComponentId: '3', endComponentId: '1'});
             textPresenter.Type(' hello');
             expect(lastViewmodel.components[0]['text']).toBe('so hellole text')
+        });
+
+        test('should filter empty string with spaces', () => {
+            textPresenter.SetSelection({startChar: 0, endChar: 8, startComponentId: '1', endComponentId: '1'});
+            textPresenter.Type('       ');
+            textPresenter.SetSelection({startChar: 2, endChar: 2, startComponentId: '3', endComponentId: '3'});
+            expect(lastViewmodel.components[0]['text']).toBe('')
         });
     });
 });
