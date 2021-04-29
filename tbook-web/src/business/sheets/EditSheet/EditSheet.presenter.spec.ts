@@ -199,6 +199,12 @@ describe('EditSheet presenter', () => {
             textPresenter.Delete('backward');
             expect(lastViewmodel.components[0]['text']).toBe('smeText')
         });
+
+        test('should handle to type a reversed selection', () => {
+            textPresenter.SetSelection({startChar: 4, endChar: 2, startComponentId: '3', endComponentId: '1'});
+            textPresenter.Type(' hello');
+            expect(lastViewmodel.components[0]['text']).toBe('so hellole text')
+        });
     });
 });
 
