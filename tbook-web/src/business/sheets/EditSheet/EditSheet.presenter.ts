@@ -46,10 +46,10 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
 
     private typeToSelection(text: string) {
         if (!this.selectionIsCarret) this.deleteSelectionContent()
-        this.insertToCarret(text);
+        this.insertToCaret(text);
     }
 
-    private insertToCarret(text: string) {
+    private insertToCaret(text: string) {
         const component = this.data.components.find((c) => c.id == this.selection.startComponentId)
         if (component.type == "text") {
             component.text = EditSheetPresenter.splice(component.text, this.selection.startChar, this.selection.startChar, text);
