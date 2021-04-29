@@ -11,7 +11,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     private data: EditSheetResponse = undefined;
     private selection: TBSelection = undefined;
 
-    private get selectionIsCarret(): boolean {
+    private get selectionIsCaret(): boolean {
         return this.selection.startChar == this.selection.endChar &&
             this.selection.startComponentId == this.selection.endComponentId;
     }
@@ -45,7 +45,7 @@ export class EditSheetPresenter extends Presenter<EditSheetViewmodel> {
     }
 
     private typeToSelection(text: string) {
-        if (!this.selectionIsCarret) this.deleteSelectionContent()
+        if (!this.selectionIsCaret) this.deleteSelectionContent()
         this.insertToCaret(text);
     }
 
